@@ -1,6 +1,6 @@
 # Project rules
 
-Applies to PCL (Local Download Repair), version 1.0.0.2.
+Applies to PCL (Local Download Repair), version 1.0.0.3.
 
 - Follow the user's global rules. Model shorthand: Codex.
 - `PCL2DLA.zip` and `Backups/` are immutable reference material. Never execute, update, overwrite, or remove them.

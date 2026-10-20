@@ -3,9 +3,9 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>PCL.Repair.Bootstrap</AssemblyName>
     <RootNamespace>PclRepair.Bootstrap</RootNamespace>
-    <Version>1.0.0.2</Version>
-    <AssemblyVersion>1.0.0.2</AssemblyVersion>
-    <FileVersion>1.0.0.2</FileVersion>
+    <Version>1.0.0.3</Version>
+    <AssemblyVersion>1.0.0.3</AssemblyVersion>
+    <FileVersion>1.0.0.3</FileVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <ImplicitUsings>disable</ImplicitUsings>

@@ -7,7 +7,8 @@ root = pathlib.Path(__file__).resolve().parent.parent
 program = (root / "src/Program.cs").read_text(encoding="utf-8-sig")
 version = re.search(r'const string Version="([\d.]+)"', program).group(1)
 assert re.findall(r'Assembly(?:File)?Version\("([^"]+)"\)', program) == [version, version]
-for filename in ("src/PclRepair.csproj", "bootstrap/PclRepair.Bootstrap.csproj", "tools/feed-publisher/FeedPublisher.csproj"):
+for filename in ("src/PclRepair.csproj", "bootstrap/PclRepair.Bootstrap.csproj",
+                 "tools/feed-publisher/FeedPublisher.csproj", "tools/recipe-maintainer/RecipeMaintainer.csproj"):
     project = ET.parse(root / filename).getroot()
     for field in ("Version", "AssemblyVersion", "FileVersion"):
         assert project.find(f"PropertyGroup/{field}").text == version, (filename, field)

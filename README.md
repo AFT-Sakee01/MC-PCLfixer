@@ -1,6 +1,6 @@
 # PCL (Local Download Repair)
 
-版本 **1.0.0.2**。PCL 原作者：**龙腾猫跃**，[原项目](https://github.com/Meloong-Git/PCL) · [赞助作者](https://meloong.com/afd/a/LTCat)。
+版本 **1.0.0.3**。PCL 原作者：**龙腾猫跃**，[原项目](https://github.com/Meloong-Git/PCL) · [赞助作者](https://meloong.com/afd/a/LTCat)。
 
 这是第三方独立制作的本地修复工具。针对官方 PCL 2.99.0.0，恢复普通 Minecraft 下载、在线整合包一键安装和本地整合包导入。包含 Windows x64 / ARM64 与 Linux x64 / ARM64 的辅助程序和完整源码。
 
@@ -47,7 +47,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 
 当前配方来自官方 2.14.0.0 和 2.99.0.0。启动入口每次检查方法结构；将来官方更新后，只要受影响方法及依赖仍匹配，就会重新修复，不依赖固定文件偏移、元数据编号或完整 EXE 哈希。
 
-**新配方需要维护者先适配、验证并签名发布。** 辅助工具能自动获取已经发布的配方，不会自行猜测未来代码。方法缺失、内容改变、关键依赖变化或第三方只改了一部分，且没有已发布的匹配配方时，会拒绝写入。工具没有后台驻留、计划任务、注册表修改或全局 CLR 配置。
+**新配方必须经过适配、验证和签名。** 维护端提供自动检查、受限等价适配和发布流程；用户端自动获取已经发布的配方。方法缺失、逻辑改变、关键依赖变化或第三方只改了一部分，且没有已发布的匹配配方时，会拒绝写入。用户端工具没有后台驻留、计划任务、注册表修改或全局 CLR 配置。
 
 自动加载通过该 PCL 专属 `.exe.config` 中的标准 [.NET Framework AppDomainManager](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/appdomainmanagerassembly-element) 入口实现。启动时引导 DLL 对比已验证 EXE 的哈希：相同就直接继续；更新后不相同，则在主界面出现前启动辅助程序并退出。辅助程序等待该进程结束，备份、校验和修复新 EXE，更新状态，再自动启动 PCL。正常使用不必手动关闭或另开辅助程序。
 
@@ -87,7 +87,32 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 .\.dotnet\dotnet.exe run --project tools/feed-publisher/FeedPublisher.csproj -c Release -- sign PCL-RecipePublisher-AFTSakee01-MCPCLfixer "Work\catalog-new.json" "Work\stable-new.json"
 ```
 
-签名工具只新建输出，不覆盖历史。完成验证后，将新的签名文件发布为仓库 `feed/stable.json`。模板默认有效期 30 天，续期也必须递增序号并重新签名。发布工具不会自动推送或替维护者审核新 PCL。公钥或引导协议需要变化时仍可能需要发布新版辅助程序。
+签名工具只新建输出，不覆盖历史。模板默认有效期 30 天，续期也必须递增序号并重新签名。自动维护流程在所有检查通过后调用签名工具并发布 `feed/stable.json`。公钥或引导协议需要变化时仍可能需要发布新版辅助程序。
+
+### 自动维护
+
+维护流程在发布者的 Windows 账户上运行，需要 .NET SDK、Python、已认证的 `gh`、Git 和原有 CNG 密钥。调度由本任务中的 Codex 定时跟进负责；电脑和 Codex 桌面应用需要保持运行。普通用户安装辅助工具不需要这些维护环境。
+
+```powershell
+# 只核对官方发行和签名目录；不签名、不推送
+python -X utf8 scripts/maintain-recipes.py check
+# 下载到全新 Work 目录、适配及完整验证；不签名、不推送
+python -X utf8 scripts/maintain-recipes.py run
+# 全部检查通过后签名，并发安全地推送到公开源
+python -X utf8 scripts/maintain-recipes.py run --publish
+```
+
+流程读取官方 GitHub 最新稳定发行，将版本标签解析为固定提交，从该提交读取 `最新正式版.zip`，核对 Git blob 哈希和文件大小，并核对 EXE 程序集版本。只提取启动器 EXE，不读取或解压 ZIP 内的账号、设置、日志和脚本。原始 `PCL2DLA.zip` 和 `Backups/` 只做哈希保护检查。
+
+候选适配器先验证现有配方源的固定公钥签名。方法及依赖完全匹配时复用配方；对新增的 `nop` 指令，只有移除它们并重映射分支、异常处理边界后，整个方法指纹仍等于已签名基线时才自动适配。不会把新依赖的指纹直接当成可信值。语义变化、方法缺失、无法证明等价或目录超过 16 个配方时停止发布，保留线上目录。
+
+每个候选执行 10 项检查，包括固定范围、所有其他方法及资源保持等价、修复结果、幂等、依赖变化拒绝、精确备份与还原。需要发布时再运行完整回归套件。检查证据绑定输入 EXE、配方和输出 EXE 的 SHA-256。测试中的合成新版本不进入公开源。这些检查证明支持范围内的结构和修复行为；任意未来下载器业务改动仍需要有针对性的功能验证，不能仅靠重新计算哈希通过。
+
+无新版本且配方距到期超过七日时不发布；进入七日窗口时自动续签，期限为 30 天，序号递增。已有受支持配方全部保留。`--force-refresh` 可在验证完整流程时提前续签。新配方仍兼容原有 **1.0.0.2** 用户端，无需为维护功能更换客户端。
+
+每次操作使用全新的 `Work/maintenance-*/`；`result.json` 保存状态和固定错误摘要，候选证据位于 `candidate/evidence.json`。适配器复用标准滚动日志，写入 `Work/maintainer-logs/`。`Work/maintenance.lock` 防止并行维护；进程退出后锁自动释放。发布使用独立检出，只提交签名目录、公开维护状态和追加的维护记录；检查远端提交未变化并使用非强制推送。并发推进或测试失败不会覆盖别人的提交。推送后的网络故障可能使结果暂时不确定，下一次运行先读取远端已签名目录核对。
+
+`feed/maintenance-state.json` 保存最后一次验证的公开发行标识、哈希、测试数量和签名序号，供无变化判断使用；它不代替签名验证。维护前主工作区必须与远端基线一致且无未提交改动。定时任务可以在工作区干净时快进同步，遇到用户改动时保留现场并报告。
 
 ## 工作原理与文件
 
@@ -100,6 +125,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 | 完整包更新兼容 | `src/UpdateCompatibility.cs`、`recipes/update-2.99.json` | 标记前后指纹、未知初始化代码拒绝 |
 | 签名配方源与缓存 | `src/RecipeFeeds.cs`、`recipes/source.json`、`feed/` | `tests/FeedTests.cs`：失配、签名、回滚、离线、并发、超时、大小、目标变化 |
 | 配方签名发布工具 | `tools/feed-publisher/Program.cs` | 临时 CNG 密钥及签名自检 |
+| 官方发行检查与配方自动维护 | `scripts/maintain-recipes.py`、`scripts/official_pcl.py`、`tools/recipe-maintainer/Program.cs` | 等价适配、坏签名/依赖变化拒绝、隔离还原、发布竞争及失败门槛 |
 | 运行日志 | `src/Journal.cs`；`Journal` | JSONL、排重、滚动、并发及写入失败测试 |
 | 发布与校验 | `scripts/publish.ps1`、`scripts/verify.ps1` | 版本检查、行为及引导测试、文档 Gate |
 
@@ -132,7 +158,7 @@ python scripts/package.py
 
 `verify.ps1` 的锁定文件测试针对 Windows；Linux 运行验证使用发布后的 CLI。`scripts/check-version.py` 检查程序、程序集、文件和项目版本，发布前还应核对产物版本。测试输入始终复制到新目录。
 
-`verify.ps1` 包含 50 项核心检查、57 项配方更新检查、44 项引导检查和 6 项发布工具自检。引导检查使用实际 CLR 子进程验证参数往返、外部 DLL 加载、框架兼容语义及扩展长度路径。网络异常测试使用模拟 HTTPS 响应，不改变生产 TLS 信任设置；发布后的真实 HTTPS 配方另行下载并验签。
+`verify.ps1` 包含 50 项核心检查、57 项配方更新检查、44 项引导检查、6 项发布工具自检，以及配方维护适配器和调度流程测试。引导检查使用实际 CLR 子进程验证参数往返、外部 DLL 加载、框架兼容语义及扩展长度路径。网络异常测试使用模拟 HTTPS 响应，不改变生产 TLS 信任设置；发布后的真实 HTTPS 配方另行下载并验签。
 
 `scripts/test-update.ps1 -Runtime win-arm64`（或 `win-x64`）在全新 `Work/` 子目录调用 PCL 的真实 `--update` 替换流程。它只把自己创建的短命等待进程交给官方更新器，不使用任何现有启动器 PID；结束后留下测试 PCL 窗口供检查。运行此测试前须完成对应架构发布。
 

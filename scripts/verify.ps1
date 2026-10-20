@@ -16,6 +16,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Bootstrap CLR fixture build failed' }
 if ($LASTEXITCODE -ne 0) { throw 'Bootstrap protocol checks failed' }
 & $Dotnet run --project (Join-Path $projectRoot 'tools\feed-publisher\FeedPublisher.csproj') -c Release -- self-test
 if ($LASTEXITCODE -ne 0) { throw 'Recipe publisher checks failed' }
+& $Dotnet run --project (Join-Path $projectRoot 'tools\recipe-maintainer\RecipeMaintainer.csproj') -c Release -- self-test $Fixture (Join-Path $testPath 'maintenance')
+if ($LASTEXITCODE -ne 0) { throw 'Recipe maintainer checks failed' }
+python -X utf8 (Join-Path $projectRoot 'tests\test_maintainer.py')
+if ($LASTEXITCODE -ne 0) { throw 'Maintenance orchestration checks failed' }
+python -X utf8 (Join-Path $projectRoot 'tests\test_official_pcl.py')
+if ($LASTEXITCODE -ne 0) { throw 'Official distribution download checks failed' }
 python (Join-Path $projectRoot 'scripts\check-version.py')
 if ($LASTEXITCODE -ne 0) { throw 'Version check failed' }
 python (Join-Path $projectRoot 'Docs\validate_docs.py') --root $projectRoot --strict

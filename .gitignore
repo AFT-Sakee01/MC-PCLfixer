@@ -1,0 +1,14 @@
+/PCL2DLA.zip
+/Backups/
+/Work/
+/Artifacts/
+/tools/vendor/
+/.dotnet/
+**/bin/
+**/obj/
+**/logs/
+**/.pcl-repair/
+**/recipe-cache/
+**/recipe-source.lock
+/recipe-source.json
+__pycache__/

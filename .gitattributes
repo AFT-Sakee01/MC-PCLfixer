@@ -1,0 +1,9 @@
+* text=auto
+*.cs text eol=lf
+*.csproj text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.jsonl text eol=lf
+*.pem text eol=lf
+# Preserve signed publication bytes exactly across checkouts.
+feed/*.json -text

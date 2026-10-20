@@ -7,3 +7,5 @@
 *.pem text eol=lf
 # Preserve signed publication bytes exactly across checkouts.
 feed/*.json -text
+# Maintenance state is unsigned metadata; normalize Windows line endings.
+feed/maintenance-state.json text eol=lf

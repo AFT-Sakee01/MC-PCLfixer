@@ -91,7 +91,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 
 ### 自动维护
 
-维护流程在发布者的 Windows 账户上运行，需要 .NET SDK、Python、已认证的 `gh`、Git 和原有 CNG 密钥。调度由本任务中的 Codex 定时跟进负责；电脑和 Codex 桌面应用需要保持运行。普通用户安装辅助工具不需要这些维护环境。
+维护流程在发布者的 Windows 账户上运行，需要 .NET SDK、Python、已认证的 `gh`、Git 和原有 CNG 密钥。本地当前聊天已启用每六小时的“PCL 配方自动维护”，设置为失败通知；电脑和 Codex 桌面应用需要保持运行。普通用户安装辅助工具不需要这些维护环境。该本地调度不会随公共源码自动安装到其他电脑。
 
 ```powershell
 # 只核对官方发行和签名目录；不签名、不推送
@@ -175,7 +175,7 @@ python scripts/package.py
 
 完整更新标记配方使用 `tools/update-recipe/UpdateRecipe.csproj`。运行参数为 `<已审查官方EXE> <新配方JSON>`；`--verify <已审查官方EXE>` 验证标记读写范围及转换结果。生成器限定已审查发行哈希，不导出其他静态初始化常量。
 
-功能、接口索引在 `Docs/Indexes/`、`Docs/Interfaces/`；维护记录在 `Docs/Maintenance/`；当前验证见 [配方更新报告](Docs/Reports/Codex-RecipeFeed-v1.0.0.2-20261021.md)，早期结果见 [自动更新报告](Docs/Reports/Codex-AutoRepair-v1.0.0.1-20261021.md) 和 [1.0.0.0 报告](Docs/Reports/Codex-Verification-v1.0.0.0-20261021.md)。`Work/` 是下载、临时工具和隔离测试目录；`Artifacts/` 是可重新生成的产物，二者均不入库。
+功能、接口索引在 `Docs/Indexes/`、`Docs/Interfaces/`；维护记录在 `Docs/Maintenance/`；当前验证见 [自动维护报告](Docs/Reports/Codex-Maintenance-v1.0.0.3-20261021.md)，早期结果见 [配方更新报告](Docs/Reports/Codex-RecipeFeed-v1.0.0.2-20261021.md)、[自动更新报告](Docs/Reports/Codex-AutoRepair-v1.0.0.1-20261021.md) 和 [1.0.0.0 报告](Docs/Reports/Codex-Verification-v1.0.0.0-20261021.md)。`Work/` 是下载、临时工具和隔离测试目录；`Artifacts/` 是可重新生成的产物，二者均不入库。
 
 ## 来源与许可
 

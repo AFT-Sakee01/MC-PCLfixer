@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "timestamp_utc": "2026-10-20T17:17:39.528879Z",
+  "release": {
+    "tag": "2.99.0.0",
+    "release_id": 418095202,
+    "published_at": "2026-10-20T07:01:34Z",
+    "updated_at": "2026-10-20T07:18:48Z"
+  },
+  "target_sha256": "6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386",
+  "profile_sha256": "bd97f003deff7323c6bf071c510f490fd397e7278f1cbd791debc384f8472e2e",
+  "checks_passed": 10,
+  "mode": "reviewed_exact",
+  "sequence": 2,
+  "baseline_commit": "e6a1a582ff9ca283013ac33df2d08f99dcdc62af",
+  "provenance": {
+    "release_tag": "2.99.0.0",
+    "source_repository": "Meloong-Git/PCL",
+    "source_commit": "6b9a50df911c9d68b69b24c979efba477fb14b67",
+    "source_path": "最新正式版.zip",
+    "source_url": "https://raw.githubusercontent.com/Meloong-Git/PCL/6b9a50df911c9d68b69b24c979efba477fb14b67/%E6%9C%80%E6%96%B0%E6%AD%A3%E5%BC%8F%E7%89%88.zip",
+    "blob_sha": "52843e0ba1c97a888630be8326fbc5a132157ccc",
+    "zip_sha256": "01877f06df84cbab376c286a633e76ef7fca0bb469e26df97f3b09b5abd503bc",
+    "size": 2664629
+  },
+  "feed_sha256": "f635ab36d9d80adede25ba4ee9b25d74b3416cee43a82d64d43d24d66459b24f"
+}

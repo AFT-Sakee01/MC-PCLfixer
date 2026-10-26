@@ -44,16 +44,29 @@ namespace PclRepair
             "System.Void PCL.PageDownloadModify::LoadInstanceFinished(PCL.ModLoader/LoaderTask`2<PCL.ModMinecraft/McInstance,System.Object>)",
             "System.Void PCL.PageDownloadResourceDetail::InitializeStackResourceVersions(System.Windows.Controls.StackPanel)"
         };
+        // Schema 2 is a separately reviewed, exact extension for 2.99.0.1's
+        // hidden download entry points. It cannot authorize arbitrary UI changes.
+        static readonly HashSet<string> EntryMethods=new HashSet<string>(StringComparer.Ordinal) {
+            "System.Void PCL.PageDownloadLeft::.ctor()",
+            "System.Void PCL.PageResource::set_PageType(PCLCS.ResourceTypes)",
+            "System.Void PCL.PageInstanceModDisabled::BtnDownload_Loaded()",
+            "System.Void PCL.ModMinecraft::McDownloadClientUpdateHint(System.String,Newtonsoft.Json.Linq.JObject)",
+            "System.Void PCL.PageSelectRight::McInstanceListUI(PCL.ModLoader/LoaderTask`2<System.String,System.Int32>)",
+            "System.Void PCL.PageSelectLeft::McFolderListUI()",
+            "System.Void PCL.PageLaunchLeft::RefreshButtonsUI()"
+        };
         public static void ValidateRecipe(Recipe recipe)
         {
-            if(recipe==null||recipe.schema_version!=1||!Hash.IsSha256(recipe.donor_sha256)
+            var permitted=new HashSet<string>(AllowedMethods,StringComparer.Ordinal);
+            if(recipe!=null&&recipe.schema_version==2) permitted.UnionWith(EntryMethods);
+            if(recipe==null||(recipe.schema_version!=1&&recipe.schema_version!=2)||!Hash.IsSha256(recipe.donor_sha256)
                 ||!Hash.IsSha256(recipe.restricted_sha256)||recipe.methods==null
-                ||recipe.methods.Count!=AllowedMethods.Count||recipe.guards==null||recipe.guards.Count>10000)
+                ||recipe.methods.Count!=permitted.Count||recipe.guards==null||recipe.guards.Count>10000)
                 throw new Unsupported("Invalid download recipe.");
             var names=new HashSet<string>(StringComparer.Ordinal);
             foreach(var item in recipe.methods)
             {
-                if(item==null||item.name==null||!AllowedMethods.Contains(item.name)||!names.Add(item.name)
+                if(item==null||item.name==null||!permitted.Contains(item.name)||!names.Add(item.name)
                     ||!Hash.IsSha256(item.before_hash)||!Hash.IsSha256(item.after_hash)||item.before_hash==item.after_hash)
                     throw new Unsupported("Invalid or unauthorized recipe method.");
                 Bodies.Validate(item.body);
@@ -63,7 +76,7 @@ namespace PclRepair
             var guards=new HashSet<string>(StringComparer.Ordinal);
             foreach(var guard in recipe.guards)
                 if(guard==null||String.IsNullOrWhiteSpace(guard.name)||guard.name.Length>16384
-                    ||AllowedMethods.Contains(guard.name)||!guards.Add(guard.name)||!Hash.IsSha256(guard.hash))
+                    ||names.Contains(guard.name)||!guards.Add(guard.name)||!Hash.IsSha256(guard.hash))
                     throw new Unsupported("Invalid or duplicate dependency guard.");
         }
         public static void ValidateProfile(RecipeProfile profile)
@@ -75,6 +88,19 @@ namespace PclRepair
         public static RecipeProfile LoadProfile()
         {
             return new RecipeProfile { Download=LoadRecipe(),Update=UpdateCompatibility.LoadDefault() };
+        }
+        public static IEnumerable<RecipeProfile> LoadProfiles()
+        {
+            using(var stream=Assembly.GetExecutingAssembly().GetManifestResourceStream("download-entries-recipe.json"))
+            using(var buffer=new MemoryStream())
+            {
+                if(stream==null) throw new Unsupported("Embedded entry repair recipe is missing.");
+                stream.CopyTo(buffer);
+                var profile=new RecipeProfile {Download=Json.Decode<Recipe>(buffer.ToArray()),Update=UpdateCompatibility.LoadDefault()};
+                ValidateProfile(profile);
+                yield return profile;
+            }
+            yield return LoadProfile();
         }
         public static Recipe LoadRecipe()
         {
@@ -127,7 +153,7 @@ namespace PclRepair
                 {
                     MethodDefinition dependency;
                     if(symbols.Definitions.TryGetValue(reference,out dependency)&&dependency.HasBody
-                        &&!AllowedMethods.Contains(reference)&&!guarded.Contains(reference))
+                        &&!recipe.methods.Any(m=>m.name==reference)&&!guarded.Contains(reference))
                         throw new Unsupported("A required dependency guard is missing: "+reference);
                 }
                 if(before!=recipe.methods.Count && after!=recipe.methods.Count)

@@ -6,12 +6,20 @@ using PclRepair;
 
 class MakeRecipe
 {
+    static bool entries;
     static bool Selected(MethodDefinition m)
     {
         return (m.DeclaringType.FullName=="PCL.ModModpack" && m.Name=="ModpackInstall")
             || (m.DeclaringType.FullName=="PCL.PageDownloadInstall" && m.Name=="LoaderInit")
             || (m.DeclaringType.FullName=="PCL.PageDownloadModify" && m.Name=="LoadInstanceFinished")
-            || (m.DeclaringType.FullName=="PCL.PageDownloadResourceDetail" && m.Name=="InitializeStackResourceVersions");
+            || (m.DeclaringType.FullName=="PCL.PageDownloadResourceDetail" && m.Name=="InitializeStackResourceVersions")
+            || (entries && ((m.DeclaringType.FullName=="PCL.PageDownloadLeft"&&m.Name==".ctor")
+                || (m.DeclaringType.FullName=="PCL.PageResource"&&m.Name=="set_PageType")
+                || (m.DeclaringType.FullName=="PCL.PageInstanceModDisabled"&&m.Name=="BtnDownload_Loaded")
+                || (m.DeclaringType.FullName=="PCL.ModMinecraft"&&m.Name=="McDownloadClientUpdateHint")
+                || (m.DeclaringType.FullName=="PCL.PageSelectRight"&&m.Name=="McInstanceListUI")
+                || (m.DeclaringType.FullName=="PCL.PageSelectLeft"&&m.Name=="McFolderListUI")
+                || (m.DeclaringType.FullName=="PCL.PageLaunchLeft"&&m.Name=="RefreshButtonsUI")));
     }
     static int Main(string[] args)
     {
@@ -20,12 +28,15 @@ class MakeRecipe
     }
     static int Generate(string[] args)
     {
+        entries=args.Length==5&&args[4]=="2.99.0.1";
+        if(entries&&Hash.File(args[1])!="0db34e19d9eeb6d496d20fabe786ec16bbd36ba6b0ccdc8d29cb7e909c114397")
+            throw new Unsupported("Entry recipe generation requires the reviewed 2.99.0.1 input.");
         using(var donor=Modules.Read(File.ReadAllBytes(args[0])))
         using(var target=Modules.Read(File.ReadAllBytes(args[1])))
         {
             var before=new Symbols(target);
             var donorSymbols=new Symbols(donor);
-            var recipe=new Recipe { donor_sha256=Hash.File(args[0]), restricted_sha256=Hash.File(args[1]) };
+            var recipe=new Recipe { schema_version=entries?2:1, donor_sha256=Hash.File(args[0]), restricted_sha256=Hash.File(args[1]) };
             foreach(var method in donor.GetTypes().SelectMany(t=>t.Methods).Where(Selected))
             {
                 MethodDefinition original;
@@ -57,7 +68,7 @@ class MakeRecipe
                 Bodies.Replace(original,body,before);
                 Console.WriteLine(method.FullName+" : "+body.instructions.Count+" instructions");
             }
-            if(recipe.methods.Count!=5) throw new Exception("Expected five methods.");
+            if(recipe.methods.Count!=(entries?12:5)) throw new Exception("Unexpected reviewed method count.");
             foreach(var reference in recipe.methods.SelectMany(m=>m.body.instructions).Where(o=>o.kind=="method").Select(o=>o.value).Distinct().OrderBy(n=>n,StringComparer.Ordinal))
             {
                 MethodDefinition dependency;

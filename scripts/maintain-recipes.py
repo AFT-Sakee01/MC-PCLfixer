@@ -121,6 +121,26 @@ def needs_refresh(catalog, now):
     return utc(catalog["expires_utc"]) <= now + dt.timedelta(days=7)
 
 
+def select_distribution(release, commits):
+    # The root official ZIP can be newer than Releases (2.99.0.1 was such a
+    # release). Pin the file-changing commit, never a mutable branch/raw URL.
+    # Unexpected naming fails closed instead of silently using an older binary.
+    if not isinstance(commits, list) or not commits:
+        raise Refused("Official distribution commit is missing")
+    entry = commits[0]
+    sha = entry.get("sha", "")
+    match = re.fullmatch(r"(\d{1,5}(?:\.\d{1,5}){3}) 正式版", entry.get("commit", {}).get("message", "").strip())
+    if not re.fullmatch(r"[0-9a-f]{40}", sha) or not match:
+        raise Refused("Official distribution commit format changed")
+    date = entry["commit"]["committer"]["date"]
+    utc(date)
+    tag = match[1]
+    if tuple(map(int, tag.split("."))) < tuple(map(int, release["tag"].split("."))):
+        return release
+    return {"tag": tag, "source_commit": sha, "published_at": date,
+            "updated_at": date, "source": "official_archive_commit"}
+
+
 def merge_profile(catalog, profile, now):
     result = copy.deepcopy(catalog)
     if profile not in result["profiles"]:
@@ -130,6 +150,11 @@ def merge_profile(catalog, profile, now):
         # not an automatic consequence of a catalog size limit.
         raise Refused("Catalog full; supported profiles must not be silently removed")
     result["sequence"] += 1
+    # Schema 2 expands the compiled, fixed method allowlist. Old clients must
+    # upgrade once; a signed feed cannot grant them new patch authority.
+    if any(p["download"]["schema_version"] == 2 for p in result["profiles"]):
+        if tuple(map(int, result["min_tool_version"].split("."))) < (1, 0, 0, 4):
+            result["min_tool_version"] = "1.0.0.4"
     result["issued_utc"] = stamp(now)
     result["expires_utc"] = stamp(now + dt.timedelta(days=30))
     return result
@@ -174,7 +199,7 @@ def download_official(release, output):
     # Import only the source-workspace module, never code in downloaded archives.
     sys.path.insert(0, str(Path(__file__).parent))
     from official_pcl import download
-    return download(release["tag"], output)
+    return download(release["tag"], output, source_commit=release.get("source_commit"))
 
 
 def publish_checkout(checkout, expected_head, run=command):
@@ -284,6 +309,9 @@ def pipeline(args, run_dir):
     if args.publish:
         sync_publication_baseline(head)
     release = parse_release(json.loads(command(["gh", "api", f"repos/{UPSTREAM}/releases/latest"])))
+    archive_path = urllib.parse.quote("最新正式版.zip", safe="")
+    commits = json.loads(command(["gh", "api", f"repos/{UPSTREAM}/commits?path={archive_path}&per_page=1"]))
+    release = select_distribution(release, commits)
     verified = run_dir / "verified-catalog.json"
     tool(maintainer, "catalog", checkout / "feed/stable.json", ROOT / "feed/publisher-public.pem", verified)
     catalog = json.loads(verified.read_text(encoding="utf-8-sig"))
@@ -323,8 +351,10 @@ def pipeline(args, run_dir):
     # Prepare's NOP-only equivalence proof is necessary, but does not replace the
     # patcher's independent integrity/restore/loader/signature regression suite.
     args.stage = "regression_tests"
-    command(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
-             ROOT / "scripts/verify.ps1"], timeout=900)
+    verification = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ROOT / "scripts/verify.ps1"]
+    if release["tag"] == "2.99.0.1":
+        verification += ["-EntryFixture", target]
+    command(verification, timeout=900)
     next_catalog = merge_profile(catalog, profile, dt.datetime.now(dt.timezone.utc))
     catalog_path = run_dir / "catalog.json"
     write_json(catalog_path, next_catalog)

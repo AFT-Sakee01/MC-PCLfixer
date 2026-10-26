@@ -78,6 +78,18 @@ class OfficialDownloadTests(unittest.TestCase):
         self.assertEqual(self.calls[-1][0], self.raw_url)
         self.assertIn("?ref=" + self.commit, self.calls[1][0])
 
+    def test_new_distribution_without_release_tag(self):
+        with patch.object(official, "_read", side_effect=self.read):
+            result = official.download("2.99.0.1", self.output, source_commit=self.commit)
+        self.assertEqual(result["source_commit"], self.commit)
+        self.assertEqual(len(self.calls), 2)
+        self.assertFalse(any("/commits/" in url for url, _ in self.calls))
+
+    def test_mutable_commit_refused(self):
+        with self.assertRaises(official.OfficialDownloadError):
+            official.download("2.99.0.1", self.output, source_commit="main")
+        self.assertFalse(self.output.exists())
+
     def test_unicode_download_url_from_github_metadata_is_accepted(self):
         self.entry["download_url"] = (
             f"https://raw.githubusercontent.com/Meloong-Git/PCL/{self.commit}/"

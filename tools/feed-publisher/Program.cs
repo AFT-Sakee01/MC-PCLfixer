@@ -53,8 +53,8 @@ static class FeedPublisher
             sequence=1,
             issued_utc=now.ToString("O",CultureInfo.InvariantCulture),
             expires_utc=now.AddDays(30).ToString("O",CultureInfo.InvariantCulture),
-            min_tool_version="1.0.0.2",
-            profiles=new List<RecipeProfile>{Repair.LoadProfile()}
+            min_tool_version="1.0.0.4",
+            profiles=new List<RecipeProfile>(Repair.LoadProfiles())
         };
     }
 

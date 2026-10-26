@@ -1,14 +1,14 @@
 # PCL (Local Download Repair)
 
-版本 **1.0.0.3**。PCL 原作者：**龙腾猫跃**，[原项目](https://github.com/Meloong-Git/PCL) · [赞助作者](https://meloong.com/afd/a/LTCat)。
+版本 **1.0.0.4**。PCL 原作者：**龙腾猫跃**，[原项目](https://github.com/Meloong-Git/PCL) · [赞助作者](https://meloong.com/afd/a/LTCat)。
 
-这是第三方独立制作的本地修复工具。针对官方 PCL 2.99.0.0，恢复普通 Minecraft 下载、在线整合包一键安装和本地整合包导入。包含 Windows x64 / ARM64 与 Linux x64 / ARM64 的辅助程序和完整源码。
+这是第三方独立制作的本地修复工具。针对官方 PCL 2.99.0.0 / 2.99.0.1，恢复普通 Minecraft 下载、在线整合包一键安装和本地整合包导入。包含 Windows x64 / ARM64 与 Linux x64 / ARM64 的辅助程序和完整源码。
 
 ## 直接使用
 
 从 [GitHub Releases](https://github.com/AFT-Sakee01/MC-PCLfixer/releases) 下载对应架构的辅助工具。公开发行包不包含 PCL 本体，需要另行取得官方 PCL。
 
-开发工作区另外准备了 `Artifacts/Windows-ARM64-Feed/` 与 `Artifacts/Windows-x64-Feed/` 两个全新副本，已启用自动修复，直接双击 **Plain Craft Launcher 2.exe** 即可。它们不包含原 ZIP 的账号、日志、游戏或启动脚本，也不上传到公开发行版。原始 `PCL2DLA.zip`、`Backups/` 和此前的交付目录保持原样。
+开发工作区另外准备了 `Artifacts/Windows-ARM64-29901/` 与 `Artifacts/Windows-x64-29901/` 两个 PCL 2.99.0.1 全新副本，已启用自动修复，直接双击 **Plain Craft Launcher 2.exe** 即可。它们不包含原 ZIP 的账号、日志、游戏或启动脚本，也不上传到公开发行版。原始 `PCL2DLA.zip`、`Backups/` 和此前的交付目录保持原样。
 
 如果用于其他 PCL 目录：
 
@@ -45,7 +45,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 
 ## 更新与兼容范围
 
-当前配方来自官方 2.14.0.0 和 2.99.0.0。启动入口每次检查方法结构；将来官方更新后，只要受影响方法及依赖仍匹配，就会重新修复，不依赖固定文件偏移、元数据编号或完整 EXE 哈希。
+当前配方来自官方 2.14.0.0、2.99.0.0 和 2.99.0.1。2.99.0.1 使用 schema 2，额外恢复七个下载相关入口；使用旧辅助程序的用户须先升级到 1.0.0.4。新版远程设置黑名单保持原样，阻止服务器通知改写启动参数等敏感配置。启动入口每次检查方法结构；将来官方更新后，只要受影响方法及依赖仍匹配，就会重新修复，不依赖固定文件偏移、元数据编号或完整 EXE 哈希。
 
 **新配方必须经过适配、验证和签名。** 维护端提供自动检查、受限等价适配和发布流程；用户端自动获取已经发布的配方。方法缺失、逻辑改变、关键依赖变化或第三方只改了一部分，且没有已发布的匹配配方时，会拒绝写入。用户端工具没有后台驻留、计划任务、注册表修改或全局 CLR 配置。
 
@@ -65,7 +65,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 
 发行版已内置本仓库的 [稳定配方源](https://raw.githubusercontent.com/AFT-Sakee01/MC-PCLfixer/main/feed/stable.json) 和固定发布者公钥，无需用户额外绑定。内置配方匹配时不联网；否则先检查已签名缓存，再尝试一次 HTTPS 下载。正常 TLS 验证保持开启，不接受重定向；总网络期限为 15 秒，响应上限 8 MiB。
 
-签名覆盖完整目录原始字节，算法为 RSA-PSS-SHA256。辅助工具验证签名、格式、有效期、最低工具版本和单调发布序号，再验证具体 PCL 方法与依赖。远端不能增加修复目标，仍限于既有五个下载方法及更新标记。下载期间目标发生变化会拒绝写入。签名配方是可信发布者提供的可执行 IL，只有审核过的配方才能签名。
+签名覆盖完整目录原始字节，算法为 RSA-PSS-SHA256。辅助工具验证签名、格式、有效期、最低工具版本和单调发布序号，再验证具体 PCL 方法与依赖。远端不能增加修复目标，schema 1 限于五个下载方法，schema 2 限于这五个方法加七个经过审查的下载入口，以及更新标记。下载期间目标发生变化会拒绝写入。签名配方是可信发布者提供的可执行 IL，只有审核过的配方才能签名。
 
 缓存位于辅助工具旁的 `recipe-cache/<源标识>/feed.json`；每次使用重新验签。有效且匹配的缓存可离线使用。过期缓存继续保留发布序号，阻止降级；损坏缓存会明确拒绝，不能通过忽略旧缓存重置这个边界。已修复 PCL 的正常启动不依赖联网。发布源无新配方时不会后台无限轮询，下一次打开 PCL 会重试。
 
@@ -91,7 +91,7 @@ Linux 版是原生运行的 **EXE 修复工具**。PCL 本体依赖 Windows WPF�
 
 ### 自动维护
 
-维护流程在发布者的 Windows 账户上运行，需要 .NET SDK、Python、已认证的 `gh`、Git 和原有 CNG 密钥。本地当前聊天已启用每六小时的“PCL 配方自动维护”，设置为失败通知；电脑和 Codex 桌面应用需要保持运行。普通用户安装辅助工具不需要这些维护环境。该本地调度不会随公共源码自动安装到其他电脑。
+维护流程在发布者的 Windows 账户上运行，需要 .NET SDK、Python、已认证的 `gh`、Git 和原有 CNG 密钥。本地当前聊天保存了每六小时的“PCL 配方自动维护”，目前处于暂停状态，通知设置为失败通知；恢复该任务后才会定期运行。电脑和 Codex 桌面应用需要保持运行。普通用户安装辅助工具不需要这些维护环境。该本地调度不会随公共源码自动安装到其他电脑。
 
 ```powershell
 # 只核对官方发行和签名目录；不签名、不推送
@@ -102,13 +102,13 @@ python -X utf8 scripts/maintain-recipes.py run
 python -X utf8 scripts/maintain-recipes.py run --publish
 ```
 
-流程读取官方 GitHub 最新稳定发行，将版本标签解析为固定提交，从该提交读取 `最新正式版.zip`，核对 Git blob 哈希和文件大小，并核对 EXE 程序集版本。只提取启动器 EXE，不读取或解压 ZIP 内的账号、设置、日志和脚本。原始 `PCL2DLA.zip` 和 `Backups/` 只做哈希保护检查。
+流程同时读取官方 GitHub 最新稳定发行与根目录 `最新正式版.zip` 的文件提交；正式包版本不低于 Release 时采用正式包提交，提交命名异常则停止。从固定提交下载，核对 Git blob 哈希和文件大小，并核对 EXE 程序集版本。只提取启动器 EXE，不读取或解压 ZIP 内的账号、设置、日志和脚本。原始 `PCL2DLA.zip` 和 `Backups/` 只做哈希保护检查。
 
-候选适配器先验证现有配方源的固定公钥签名。方法及依赖完全匹配时复用配方；对新增的 `nop` 指令，只有移除它们并重映射分支、异常处理边界后，整个方法指纹仍等于已签名基线时才自动适配。不会把新依赖的指纹直接当成可信值。语义变化、方法缺失、无法证明等价或目录超过 16 个配方时停止发布，保留线上目录。
+候选适配器先验证现有配方源的固定公钥签名。方法及依赖完全匹配时复用已签名或随本版本审查的内置配方；对新增的 `nop` 指令，只有移除它们并重映射分支、异常处理边界后，整个方法指纹仍等于已签名基线时才自动适配。不会把新依赖的指纹直接当成可信值。语义变化、方法缺失、无法证明等价或目录超过 16 个配方时停止发布，保留线上目录。
 
 每个候选执行 10 项检查，包括固定范围、所有其他方法及资源保持等价、修复结果、幂等、依赖变化拒绝、精确备份与还原。需要发布时再运行完整回归套件。检查证据绑定输入 EXE、配方和输出 EXE 的 SHA-256。测试中的合成新版本不进入公开源。这些检查证明支持范围内的结构和修复行为；任意未来下载器业务改动仍需要有针对性的功能验证，不能仅靠重新计算哈希通过。
 
-无新版本且配方距到期超过七日时不发布；进入七日窗口时自动续签，期限为 30 天，序号递增。已有受支持配方全部保留。`--force-refresh` 可在验证完整流程时提前续签。新配方仍兼容原有 **1.0.0.2** 用户端，无需为维护功能更换客户端。
+无新版本且配方距到期超过七日时不发布；进入七日窗口时自动续签，期限为 30 天，序号递增。已有受支持配方全部保留。`--force-refresh` 可在验证完整流程时提前续签。包含 schema 2 的目录要求辅助程序 **1.0.0.4**；旧辅助程序需要升级一次，之后继续自动获取同一固定范围内的签名配方。
 
 每次操作使用全新的 `Work/maintenance-*/`；`result.json` 保存状态和固定错误摘要，候选证据位于 `candidate/evidence.json`。适配器复用标准滚动日志，写入 `Work/maintainer-logs/`。`Work/maintenance.lock` 防止并行维护；进程退出后锁自动释放。发布使用独立检出，只提交签名目录、公开维护状态和追加的维护记录；检查远端提交未变化并使用非强制推送。并发推进或测试失败不会覆盖别人的提交。推送后的网络故障可能使结果暂时不确定，下一次运行先读取远端已签名目录核对。
 
@@ -118,7 +118,7 @@ python -X utf8 scripts/maintain-recipes.py run --publish
 
 | 功能 | 文件 / 入口 | 验证 |
 | --- | --- | --- |
-| 五处下载入口恢复 | `src/Recipe.cs`、`recipes/download-2.99.json`；符号 IL 与依赖指纹 | 结构测试及实际 GUI 安装 |
+| 下载与相关入口恢复 | `src/Recipe.cs`、`recipes/download-2.99.json`、`recipes/download-2.99.0.1.json`；符号 IL 与依赖指纹 | 结构测试及实际 GUI 安装 |
 | 兼容检查、备份、还原 | `src/Repair.cs`；`Inspect`、`Transform`、`Apply`、`Restore` | 幂等、更新替换、异常输入、备份损坏、锁定测试 |
 | 启动包装入口 | `src/Program.cs`；`Main` | 四架构 CLI 验证 |
 | 更新后自动恢复 / 外部加载 | `src/AutoRepair.cs`、`bootstrap/Manager.cs` | 配置保留、启动交接及真实 PCL `--update` 流程 |
@@ -129,14 +129,16 @@ python -X utf8 scripts/maintain-recipes.py run --publish
 | 运行日志 | `src/Journal.cs`；`Journal` | JSONL、排重、滚动、并发及写入失败测试 |
 | 发布与校验 | `scripts/publish.ps1`、`scripts/verify.ps1` | 版本检查、行为及引导测试、文档 Gate |
 
-修复只重建五个方法体：
+schema 1 重建以下五个方法体：
 
 - `ModModpack.ModpackInstall` 两个重载。
 - `PageDownloadInstall.LoaderInit`。
 - `PageDownloadModify.LoadInstanceFinished`。
 - `PageDownloadResourceDetail.InitializeStackResourceVersions`。
 
-此外，仅修改 `ModSecret` 静态初始化中的一个 `UpdateMark` 字符串。配方保存该初始化方法前后指纹，不复制它的其他常量。Mono.Cecil 写出后，工具重新读取 EXE，校验五个下载方法及更新标记，验证其他全部方法体与嵌入资源保持等价。写入前创建按 SHA-256 寻址的备份，校验备份后用同文件系统的原子替换提交。辅助程序不会强制终止现有 PCL；外部引导只让它自己所在的启动进程在进入界面前退出。
+schema 2 另恢复七个入口：`PageDownloadLeft` 构造函数、`PageResource.PageType` 设置器、`PageInstanceModDisabled.BtnDownload_Loaded`、`ModMinecraft.McDownloadClientUpdateHint`、`PageSelectRight.McInstanceListUI`、`PageSelectLeft.McFolderListUI` 和 `PageLaunchLeft.RefreshButtonsUI`。只接受这组固定方法，不允许远端扩展到其他选项。
+
+此外，仅修改 `ModSecret` 静态初始化中的一个 `UpdateMark` 字符串。配方保存该初始化方法前后指纹，不复制它的其他常量。Mono.Cecil 写出后，工具重新读取 EXE，校验配方指定的全部下载方法及更新标记，验证其他全部方法体与嵌入资源保持等价。写入前创建按 SHA-256 寻址的备份，校验备份后用同文件系统的原子替换提交。辅助程序不会强制终止现有 PCL；外部引导只让它自己所在的启动进程在进入界面前退出。
 
 `.pcl-repair/backups/<原始SHA256>.exe` 保存原文件；`.pcl-repair/<修复后SHA256>.json` 是还原凭据；目录内锁文件协调并发操作。操作目标不能位于 `Backups/`、`.pcl-repair/` 或符号链接路径中。
 

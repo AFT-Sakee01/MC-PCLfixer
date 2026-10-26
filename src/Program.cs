@@ -8,14 +8,14 @@ using System.Text;
 
 [assembly:AssemblyTitle("PCL (Local Download Repair)")]
 [assembly:AssemblyDescription("Independent third-party repair tool; upstream PCL by 龙腾猫跃")]
-[assembly:AssemblyVersion("1.0.0.3")]
-[assembly:AssemblyFileVersion("1.0.0.3")]
+[assembly:AssemblyVersion("1.0.0.4")]
+[assembly:AssemblyFileVersion("1.0.0.4")]
 
 namespace PclRepair
 {
     public static class Program
     {
-        public const string Version="1.0.0.3";
+        public const string Version="1.0.0.4";
         [DllImport("user32.dll",CharSet=CharSet.Unicode)]
         static extern int MessageBox(IntPtr window,string text,string caption,uint type);
         public static int Main(string[] args)

@@ -272,12 +272,16 @@ static class RecipeMaintainer
 
     static RecipeProfile Select(byte[] input,RecipeCatalog catalog,out string mode)
     {
-        foreach(var profile in catalog.profiles)
+        // Embedded profiles have been reviewed with this maintainer release.
+        // The authenticated catalog still supplies sequence/expiry provenance;
+        // this fallback bootstraps a newly reviewed profile's first publication.
+        var reviewed=catalog.profiles.Concat(Repair.LoadProfiles()).ToList();
+        foreach(var profile in reviewed)
         {
             try {Repair.Inspect(input,profile);mode="reviewed_exact";return profile;}
             catch(Unsupported) { }
         }
-        foreach(var profile in catalog.profiles)
+        foreach(var profile in reviewed)
         {
             try {var adapted=Adapt(input,profile);mode="proven_nop_insertion";return adapted;}
             catch(Unsupported) { }

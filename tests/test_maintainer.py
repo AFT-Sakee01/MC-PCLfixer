@@ -196,6 +196,8 @@ class PipelineDouble:
             self.local_head = args[-1]
             return ""
         if args[:2] == ["gh", "api"]:
+            if "/commits?path=" in args[2]:
+                return json.dumps([{"sha": COMMIT, "commit": {"message": "2.14.0.0 正式版", "committer": {"date": "2026-10-19T00:00:00Z"}}}])
             if args[2].endswith("/releases/latest"):
                 return json.dumps(self.release)
             if "/contents/feed/stable.json?ref=" in args[2]:
@@ -270,6 +272,31 @@ class PipelineDouble:
 
 
 class MaintainerTests(unittest.TestCase):
+    def test_archive_commit_ahead_of_release(self):
+        old = maintainer.parse_release(release())
+        commits = [{"sha": COMMIT, "commit": {"message": "2.99.0.1 正式版", "committer": {"date": "2026-10-24T16:45:40Z"}}}]
+        selected = maintainer.select_distribution(old, commits)
+        self.assertEqual(selected["tag"], "2.99.0.1")
+        self.assertEqual(selected["source_commit"], COMMIT)
+        commits[0]["commit"]["message"] = "2.99.0.0 正式版"
+        self.assertIn("source_commit", maintainer.select_distribution(old, commits))
+        commits[0]["commit"]["message"] = "2.14.0.0 正式版"
+        self.assertEqual(maintainer.select_distribution(old, commits), old)
+
+    def test_ambiguous_archive_commit_refused(self):
+        for value in ([], [{"sha": COMMIT, "commit": {"message": "unreviewed rename"}}], [{"sha": "main", "commit": {"message": "2.99.0.1 正式版"}}]):
+            with self.assertRaises(maintainer.Refused):
+                maintainer.select_distribution(maintainer.parse_release(release()), value)
+
+    def test_schema_two_requires_new_helper_without_dropping_old(self):
+        newer = profile(2)
+        newer["download"]["schema_version"] = 2
+        merged = maintainer.merge_profile(catalog(), newer, NOW)
+        self.assertEqual(merged["min_tool_version"], "1.0.0.4")
+        self.assertEqual(len(merged["profiles"]), 2)
+        merged["min_tool_version"] = "1.0.0.5"
+        self.assertEqual(maintainer.merge_profile(merged, newer, NOW)["min_tool_version"], "1.0.0.5")
+
     def setUp(self):
         # Every filesystem fixture belongs to a disposable root. In particular,
         # no test uses the real archive, Backups, checkout, signing key or feed.

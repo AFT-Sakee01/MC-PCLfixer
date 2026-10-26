@@ -1,8 +1,8 @@
 """Fetch the official release ZIP from its immutable upstream Git tree.
 
 The upstream release currently has no binary assets. Its source tree contains
-最新正式版.zip, so resolve the release tag to a commit before obtaining the file
-metadata and content. The Git blob digest binds downloaded bytes to that tree;
+最新正式版.zip. Resolve a release tag or accept a validated file-changing commit
+before obtaining metadata and content. The Git blob digest binds bytes to that tree;
 it is not an independently signed publisher SHA-256.
 """
 
@@ -93,7 +93,7 @@ def _output_path(output_path: str | os.PathLike[str]) -> Path:
     return output
 
 
-def download(release_tag: str, output_path: str | os.PathLike[str]) -> dict:
+def download(release_tag: str, output_path: str | os.PathLike[str], source_commit: str | None = None) -> dict:
     """Create a verified official ZIP; never overwrite, execute or extract it.
 
     Callers must still check the contained launcher's assembly version against
@@ -102,8 +102,9 @@ def download(release_tag: str, output_path: str | os.PathLike[str]) -> dict:
     if not isinstance(release_tag, str) or not re.fullmatch(r"\d{1,5}(?:\.\d{1,5}){3}", release_tag):
         raise OfficialDownloadError("Unsupported official release tag.")
     output = _output_path(output_path)
-    commit = _metadata(f"https://api.github.com/repos/{REPOSITORY}/commits/{quote(release_tag, safe='')}")
-    source_commit = commit.get("sha")
+    if source_commit is None:
+        commit = _metadata(f"https://api.github.com/repos/{REPOSITORY}/commits/{quote(release_tag, safe='')}")
+        source_commit = commit.get("sha")
     if not isinstance(source_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         raise OfficialDownloadError("Official commit identity is invalid.")
     encoded_name = quote(ARCHIVE_NAME, safe="")

@@ -3,9 +3,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>PCL-Download-Repair</AssemblyName>
-    <Version>1.0.0.3</Version>
-    <AssemblyVersion>1.0.0.3</AssemblyVersion>
-    <FileVersion>1.0.0.3</FileVersion>
+    <Version>1.0.0.4</Version>
+    <AssemblyVersion>1.0.0.4</AssemblyVersion>
+    <FileVersion>1.0.0.4</FileVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -19,6 +19,7 @@
     <ProjectReference Include="../bootstrap/PclRepair.Bootstrap.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" GeneratePathProperty="true" />
+    <EmbeddedResource Include="../recipes/download-2.99.0.1.json" LogicalName="download-entries-recipe.json" />
     <EmbeddedResource Include="../recipes/download-2.99.json" LogicalName="download-recipe.json" />
     <EmbeddedResource Include="../recipes/update-2.99.json" LogicalName="update-recipe.json" />
     <EmbeddedResource Include="../recipes/source.json" LogicalName="recipe-source.json" />

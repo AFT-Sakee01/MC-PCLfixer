@@ -150,6 +150,7 @@ static class Suite
         using(var journal=new Journal(invalid)) journal.Write("Error","io","Fixed message","IOException");
         Check(true,"logging failure does not crash");
         count+=FeedTests.Run(original,root);
+        if(args.Length>2) count+=EntryTests.Run(args[2],root);
         Check(Hash.File(fixture)==originalHash,"official input still intact after full suite");
         Console.WriteLine("ALL "+count+" CHECKS PASSED");
         return 0;

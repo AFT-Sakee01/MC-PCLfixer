@@ -257,9 +257,11 @@ namespace PclRepair
         }
         public RecipeProfile Select(byte[] input,bool allowNetwork=true)
         {
-            var embedded=Repair.LoadProfile();
-            try {Repair.Inspect(input,embedded);return embedded;}
-            catch(Unsupported) { }
+            foreach(var embedded in Repair.LoadProfiles())
+            {
+                try {Repair.Inspect(input,embedded);return embedded;}
+                catch(Unsupported) { }
+            }
             if(!File.Exists(SourcePath)&&!useBundledSource)
                 throw new Unsupported("No compatible recipe. Configure a recipe source and its publisher public key once.");
             var source=LoadSource();
